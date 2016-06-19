@@ -1,0 +1,4 @@
+[submodule "specification/pact-specification"]
+	path = specification/pact-specification
+	url = git@github.com:pact-foundation/pact-specification.git
+	branch = version-1.1
