@@ -57,18 +57,10 @@ func TestRequestBodySpecificaion(t *testing.T) {
 			t.Error(err)
 			t.FailNow()
 		}
-		exp, err := convertToHTTPRequest(tc.Expected)
+
+		result, err := comparers.MatchRequest(tc.Expected, tc.Actual)
 		if err != nil {
-			t.Error(err)
-			t.FailNow()
-		}
-		act, err := convertToHTTPRequest(tc.Actual)
-		if err != nil {
-			t.Error(err)
-			t.FailNow()
-		}
-		result, err := comparers.MatchRequest(exp, act)
-		if err != nil {
+			t.Log(tc.Comment)
 			t.Error(err)
 		} else if result != tc.Match {
 			t.Errorf("Expected Match: %v Actual Match: %v", tc.Match, result)

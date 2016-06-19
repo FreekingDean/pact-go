@@ -3,13 +3,14 @@ package comparers
 import (
 	_ "encoding/json"
 	"net/http"
-	"strings"
 	"testing"
+
+	"github.com/SEEK-Jobs/pact-go/provider"
 )
 
 func Test_MethodIsDifferent_WillNotMatch(t *testing.T) {
-	a, _ := http.NewRequest("GET", "", nil)
-	b, _ := http.NewRequest("POST", "", nil)
+	a := provider.NewJSONRequest("GET", "", "", nil)
+	b := provider.NewJSONRequest("POST", "", "", nil)
 
 	result, err := MatchRequest(a, b)
 
@@ -24,8 +25,8 @@ func Test_MethodIsDifferent_WillNotMatch(t *testing.T) {
 }
 
 func Test_UrlIsDifferent_WillNotMatch(t *testing.T) {
-	a, _ := http.NewRequest("GET", "", nil)
-	b, _ := http.NewRequest("GET", "/", nil)
+	a := provider.NewJSONRequest("GET", "", "", nil)
+	b := provider.NewJSONRequest("GET", "/", "", nil)
 
 	result, err := MatchRequest(a, b)
 
@@ -40,8 +41,9 @@ func Test_UrlIsDifferent_WillNotMatch(t *testing.T) {
 }
 
 func Test_ExpectedNoBodyButActualRequestHasBody_WillMatch(t *testing.T) {
-	a, _ := http.NewRequest("GET", "/test", nil)
-	b, _ := http.NewRequest("GET", "/test", strings.NewReader(`{"name": "John"}`))
+	a := provider.NewJSONRequest("GET", "/test", "", nil)
+	b := provider.NewJSONRequest("GET", "/test", "", nil)
+	b.SetBody(`{"name": "John"}`)
 
 	result, err := MatchRequest(a, b)
 
@@ -56,8 +58,10 @@ func Test_ExpectedNoBodyButActualRequestHasBody_WillMatch(t *testing.T) {
 }
 
 func Test_BodyIsDifferent_WillNotMatch(t *testing.T) {
-	a, err := http.NewRequest("GET", "/test", strings.NewReader(`{"name": "John", "age": 12 }`))
-	b, err := http.NewRequest("GET", "/test", strings.NewReader(`{"name": "John"}`))
+	a := provider.NewJSONRequest("GET", "/test", "", nil)
+	a.SetBody(`{"name": "John", "age": 12 }`)
+	b := provider.NewJSONRequest("GET", "/test", "", nil)
+	b.SetBody(`{"name": "John"}`)
 
 	result, err := MatchRequest(a, b)
 	if result {
@@ -71,11 +75,10 @@ func Test_BodyIsDifferent_WillNotMatch(t *testing.T) {
 }
 
 func Test_HeadersAreMissing_WillNotMatch(t *testing.T) {
-	a, err := http.NewRequest("GET", "/test", nil)
-	b, err := http.NewRequest("GET", "/test", nil)
-	a.Header = make(http.Header)
-
-	a.Header.Add("content-type", "application/json")
+	aHeader := make(http.Header)
+	aHeader.Add("content-type", "application/json")
+	a := provider.NewJSONRequest("GET", "/test", "", aHeader)
+	b := provider.NewJSONRequest("GET", "/test", "", nil)
 
 	result, err := MatchRequest(a, b)
 
@@ -90,13 +93,13 @@ func Test_HeadersAreMissing_WillNotMatch(t *testing.T) {
 }
 
 func Test_HeadersAreDifferent_WillNotMatch(t *testing.T) {
-	a, err := http.NewRequest("GET", "/test", nil)
-	b, err := http.NewRequest("GET", "/test", nil)
-	a.Header = make(http.Header)
-	b.Header = make(http.Header)
+	aHeader := make(http.Header)
+	aHeader.Add("content-type", "application/json")
+	a := provider.NewJSONRequest("GET", "/test", "", aHeader)
 
-	a.Header.Add("content-type", "application/json")
-	b.Header.Add("content-type", "text/plain")
+	bHeader := make(http.Header)
+	bHeader.Add("content-type", "text/plain")
+	b := provider.NewJSONRequest("GET", "/test", "", bHeader)
 
 	result, err := MatchRequest(a, b)
 
@@ -111,14 +114,15 @@ func Test_HeadersAreDifferent_WillNotMatch(t *testing.T) {
 }
 
 func Test_AllHeadersFound_WillMatch(t *testing.T) {
-	a, err := http.NewRequest("GET", "/test", nil)
-	b, err := http.NewRequest("GET", "/test", nil)
-	a.Header = make(http.Header)
-	b.Header = make(http.Header)
+	aHeader := make(http.Header)
+	bHeader := make(http.Header)
 
-	a.Header.Add("content-type", "application/json")
-	b.Header.Add("content-type", "application/json")
-	b.Header.Add("extra-header", "value")
+	aHeader.Add("content-type", "application/json")
+	bHeader.Add("content-type", "application/json")
+	bHeader.Add("extra-header", "value")
+
+	a := provider.NewJSONRequest("GET", "/test", "", aHeader)
+	b := provider.NewJSONRequest("GET", "/test", "", bHeader)
 
 	result, err := MatchRequest(a, b)
 

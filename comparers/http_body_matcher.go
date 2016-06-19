@@ -11,7 +11,6 @@ func bodyMatches(expected, actual io.Reader, allowUnexpectedKeys bool) (bool, di
 	if expected == nil {
 		return true, nil, nil
 	}
-
 	var e, a interface{}
 	decoder := json.NewDecoder(expected)
 	err := decoder.Decode(&e)
@@ -28,6 +27,17 @@ func bodyMatches(expected, actual io.Reader, allowUnexpectedKeys bool) (bool, di
 	}
 
 	if result, diffs := diff.DeepDiff(e, a, &diff.DiffConfig{AllowUnexpectedKeys: allowUnexpectedKeys, RootPath: "[\"body\"]"}); result {
+		return result, nil, nil
+	} else {
+		return result, diffs, nil
+	}
+}
+
+func bodyMatchesTemp(expected, actual interface{}, allowUnexpectedKeys bool) (bool, diff.Differences, error) {
+	if expected == nil {
+		return true, nil, nil
+	}
+	if result, diffs := diff.DeepDiff(expected, actual, &diff.DiffConfig{AllowUnexpectedKeys: allowUnexpectedKeys, RootPath: "[\"body\"]"}); result {
 		return result, nil, nil
 	} else {
 		return result, diffs, nil
