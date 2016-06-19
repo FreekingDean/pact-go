@@ -2,10 +2,11 @@ package comparers
 
 import (
 	"bytes"
-	"github.com/SEEK-Jobs/pact-go/diff"
-	"github.com/SEEK-Jobs/pact-go/provider"
 	"io"
 	"net/http"
+
+	"github.com/SEEK-Jobs/pact-go/diff"
+	"github.com/SEEK-Jobs/pact-go/provider"
 )
 
 func MatchResponse(expected *provider.Response, actual *http.Response) (diff.Differences, error) {
@@ -24,7 +25,7 @@ func MatchResponse(expected *provider.Response, actual *http.Response) (diff.Dif
 		diffs = append(diffs, sDiff...)
 	} else if res, hDiff := headerMatches(expected.Headers, actual.Header); !res {
 		diffs = append(diffs, hDiff...)
-	} else if res, bDiff, err := bodyMatches(expBody, actual.Body); err != nil {
+	} else if res, bDiff, err := bodyMatches(expBody, actual.Body, true); err != nil {
 		return nil, err
 	} else if !res {
 		diffs = append(diffs, bDiff...)
