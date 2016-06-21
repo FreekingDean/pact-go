@@ -13,7 +13,7 @@ func MatchResponse(expected, actual *provider.Response) (diff.Differences, error
 		diffs = append(diffs, sDiff...)
 	} else if res, hDiff := headerMatches(expected.Headers, actual.Headers); !res {
 		diffs = append(diffs, hDiff...)
-	} else if res, bDiff, err := bodyMatchesTemp(expected.GetBody(), actual.GetBody(), true, expected.HasContentBeenExplictlySet()); err != nil {
+	} else if res, bDiff, err := bodyMatches(expected.GetBody(), actual.GetBody(), true, expected.HasContentBeenExplictlySet()); err != nil {
 		return nil, err
 	} else if !res {
 		diffs = append(diffs, bDiff...)
