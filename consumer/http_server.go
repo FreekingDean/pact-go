@@ -102,7 +102,7 @@ func findSimilarInteraction(src []*Interaction, i *Interaction) *Interaction {
 }
 
 func (ms *HTTPMockService) findMatchingInteractionInScope(r *http.Request) (*Interaction, error) {
-	reqToFind, err := provider.FromHTTPRequest(r)
+	reqToFind, err := provider.CreateRequestFromHTTPRequest(r)
 	if err != nil {
 		return nil, err
 	}

@@ -125,8 +125,8 @@ func (p *Request) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// FromHTTPRequest creates provdier request from http request
-func FromHTTPRequest(httpReq *http.Request) (*Request, error) {
+// CreateRequestFromHTTPRequest creates provdier request from http request
+func CreateRequestFromHTTPRequest(httpReq *http.Request) (*Request, error) {
 	req := NewRequest(httpReq.Method, httpReq.URL.Path, httpReq.URL.RawQuery, httpReq.Header)
 	if httpReq.Body != nil {
 		data, err := ioutil.ReadAll(httpReq.Body)
