@@ -1,16 +1,27 @@
 package provider
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"net/http"
 )
 
 //Response provider response
 type Response struct {
-	Status  int
-	Headers http.Header
+	Status     int
+	Headers    http.Header
+	contentSet bool
 	httpContent
+}
+
+// NewResponse returns response without any body content
+func NewResponse(status int, headers http.Header) *Response {
+	return &Response{
+		Status:  status,
+		Headers: headers,
+	}
 }
 
 //NewJSONResponse creates new response with body as json content
@@ -19,6 +30,15 @@ func NewJSONResponse(status int, headers http.Header) *Response {
 		Status:      status,
 		Headers:     headers,
 		httpContent: &jsonContent{},
+	}
+}
+
+// NewPlainTextResponse creates new response with body as plain text content
+func NewPlainTextResponse(status int, headers http.Header) *Response {
+	return &Response{
+		Status:      status,
+		Headers:     headers,
+		httpContent: &plainTextContent{},
 	}
 }
 
@@ -35,7 +55,8 @@ func (p *Response) MarshalJSON() ([]byte, error) {
 		obj["headers"] = joinHeaderKeyValues(p.Headers)
 	}
 	if p.httpContent != nil {
-		if body := p.GetBody(); body != nil {
+		body := p.GetBody()
+		if p.contentSet {
 			obj["body"] = body
 		}
 	}
@@ -45,11 +66,17 @@ func (p *Response) MarshalJSON() ([]byte, error) {
 //UnmarshalJSON cusotm json unmarshalling
 func (p *Response) UnmarshalJSON(b []byte) error {
 	var obj map[string]interface{}
-	r := Response{httpContent: &jsonContent{}}
-
 	if err := json.Unmarshal(b, &obj); err != nil {
 		return err
 	}
+
+	r := Response{}
+	if body, ok := obj["body"]; ok {
+		if err := r.SetBody(body); err != nil {
+			return err
+		}
+	}
+
 	if status, ok := obj["status"].(float64); ok { //default number deserialised as float64
 		r.Status = int(status)
 	} else {
@@ -64,7 +91,84 @@ func (p *Response) UnmarshalJSON(b []byte) error {
 			}
 		}
 	}
-	r.SetBody(obj["body"])
+
 	*p = Response(r)
+	return nil
+}
+
+// CreateResponseFromHTTPResponse creates response from http.Response
+func CreateResponseFromHTTPResponse(httpResp *http.Response) (*Response, error) {
+	resp := NewResponse(httpResp.StatusCode, httpResp.Header)
+	if httpResp.Body != nil {
+		data, err := ioutil.ReadAll(httpResp.Body)
+		if err != nil {
+			return nil, err
+		}
+		if len(data) > 0 {
+			switch httpResp.Header.Get("Content-Type") {
+			case "text/plain":
+				n := bytes.IndexByte(data, 0)
+				if err = resp.SetBody(string(data[:n])); err != nil {
+					return nil, err
+				}
+			default: //expecting json
+				var body interface{}
+				if err = json.Unmarshal(data, &body); err != nil {
+					return nil, err
+				}
+				if err = resp.SetBody(body); err != nil {
+					return nil, err
+				}
+			}
+		}
+	}
+	return resp, nil
+}
+
+// HasContentBeenExplictlySet returns true if the user choose to set the body of the request.
+func (p *Response) HasContentBeenExplictlySet() bool {
+	return p.contentSet
+}
+
+// HasContent returns true when request content has been set
+func (p *Response) HasContent() bool {
+	return p.httpContent != nil
+}
+
+// GetData returns bytes from the content
+func (p *Response) GetData() ([]byte, error) {
+	if p.HasContent() {
+		return p.httpContent.GetData()
+	}
+	return nil, nil
+}
+
+// GetBody returns the content
+func (p *Response) GetBody() interface{} {
+	if p.HasContent() {
+		return p.httpContent.GetBody()
+	}
+	return nil
+}
+
+// SetBody sets the body of the request
+func (p *Response) SetBody(body interface{}) error {
+	p.contentSet = true
+	if body == nil {
+		return nil
+	}
+
+	if p.httpContent == nil {
+		switch body.(type) {
+		case string:
+			p.httpContent = &plainTextContent{}
+		default:
+			p.httpContent = &jsonContent{}
+		}
+	}
+
+	if err := p.httpContent.SetBody(body); err != nil {
+		return err
+	}
 	return nil
 }

@@ -91,7 +91,6 @@ func (p *Request) UnmarshalJSON(b []byte) error {
 	r := Request{}
 
 	if body, ok := obj["body"]; ok {
-		r.contentSet = true
 		if err := r.SetBody(body); err != nil {
 			return err
 		}
@@ -182,6 +181,8 @@ func (p *Request) GetBody() interface{} {
 
 // SetBody sets the body of the request
 func (p *Request) SetBody(body interface{}) error {
+	p.contentSet = true
+
 	if body == nil {
 		return nil
 	}
@@ -198,7 +199,6 @@ func (p *Request) SetBody(body interface{}) error {
 	if err := p.httpContent.SetBody(body); err != nil {
 		return err
 	}
-	p.contentSet = true
 	return nil
 }
 

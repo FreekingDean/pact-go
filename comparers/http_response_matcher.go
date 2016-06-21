@@ -1,31 +1,19 @@
 package comparers
 
 import (
-	"bytes"
-	"io"
-	"net/http"
-
 	"github.com/SEEK-Jobs/pact-go/diff"
 	"github.com/SEEK-Jobs/pact-go/provider"
 )
 
-func MatchResponse(expected *provider.Response, actual *http.Response) (diff.Differences, error) {
+func MatchResponse(expected, actual *provider.Response) (diff.Differences, error) {
 	diffs := make(diff.Differences, 0)
 
-	b, err := expected.GetData()
-	if err != nil {
-		return nil, err
-	}
-	var expBody io.Reader
-	if len(b) > 0 {
-		expBody = bytes.NewReader(b)
-	}
-	if res, sDiff := diff.DeepDiff(expected.Status, actual.StatusCode,
+	if res, sDiff := diff.DeepDiff(expected.Status, actual.Status,
 		&diff.DiffConfig{AllowUnexpectedKeys: true, RootPath: "[\"status\"]"}); !res {
 		diffs = append(diffs, sDiff...)
-	} else if res, hDiff := headerMatches(expected.Headers, actual.Header); !res {
+	} else if res, hDiff := headerMatches(expected.Headers, actual.Headers); !res {
 		diffs = append(diffs, hDiff...)
-	} else if res, bDiff, err := bodyMatches(expBody, actual.Body, true); err != nil {
+	} else if res, bDiff, err := bodyMatchesTemp(expected.GetBody(), actual.GetBody(), true, false); err != nil {
 		return nil, err
 	} else if !res {
 		diffs = append(diffs, bDiff...)
