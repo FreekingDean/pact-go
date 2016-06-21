@@ -7,7 +7,7 @@ vet: get-deps
 	go vet -v ./...
 
 test: vet
-	go test -v -cover ./...
+	go test -v -cover ./... ./_specification
 
 compile: test
 	go build -v
