@@ -151,13 +151,13 @@ func CreateRequestFromHTTPRequest(httpReq *http.Request) (*Request, error) {
 	return req, nil
 }
 
-// HasContent returns true when request content has been set
+// HasContent returns true when request content is not nil
 func (p *Request) HasContent() bool {
 	return p.httpContent != nil
 }
 
-// HasContentBeenExplictlySet returns true if the user choose to set the body of the request.
-func (p *Request) HasContentBeenExplictlySet() bool {
+// BodyHasToBeSerialized returns true if the user choose to set the body of the request.
+func (p *Request) BodyHasToBeSerialized() bool {
 	return p.contentSet
 }
 

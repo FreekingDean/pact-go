@@ -25,7 +25,7 @@ func MatchRequest(expected, actual *provider.Request) (bool, error) {
 		return false, nil
 	} else if res, _ := headerMatches(expected.Headers, actual.Headers); !res {
 		return false, nil
-	} else if res, _, err := bodyMatches(expected.GetBody(), actual.GetBody(), false, expected.HasContentBeenExplictlySet()); err != nil || !res {
+	} else if res, _, err := bodyMatches(expected.GetBody(), actual.GetBody(), false, expected.BodyHasToBeSerialized()); err != nil || !res {
 		return false, err
 	}
 	return true, nil

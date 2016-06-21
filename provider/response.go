@@ -127,12 +127,12 @@ func CreateResponseFromHTTPResponse(httpResp *http.Response) (*Response, error) 
 	return resp, nil
 }
 
-// HasContentBeenExplictlySet returns true if the user choose to set the body of the request.
-func (p *Response) HasContentBeenExplictlySet() bool {
+// BodyHasToBeSerialized returns true if the user choose to set the body of the request.
+func (p *Response) BodyHasToBeSerialized() bool {
 	return p.contentSet
 }
 
-// HasContent returns true when request content has been set
+// HasContent returns true when request content is not nil
 func (p *Response) HasContent() bool {
 	return p.httpContent != nil
 }
