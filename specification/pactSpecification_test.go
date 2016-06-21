@@ -21,6 +21,76 @@ type RequestTestCase struct {
 	Actual   *provider.Request `json:"actual"`
 }
 
+func TestRequestBodySpecificaion(t *testing.T) {
+	searchDir := "./pact-specification/testcases/request/body/"
+
+	fileList, err := getFileNamesFromFolder(searchDir)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	for _, fileName := range fileList {
+		testCase(t, fileName)
+	}
+}
+
+func TestRequestHeaderSpecificaion(t *testing.T) {
+	searchDir := "./pact-specification/testcases/request/headers/"
+
+	fileList, err := getFileNamesFromFolder(searchDir)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	for _, fileName := range fileList {
+		testCase(t, fileName)
+	}
+}
+
+func TestRequestMethodSpecificaion(t *testing.T) {
+	searchDir := "./pact-specification/testcases/request/method/"
+
+	fileList, err := getFileNamesFromFolder(searchDir)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	for _, fileName := range fileList {
+		testCase(t, fileName)
+	}
+}
+
+func TestRequestPathSpecificaion(t *testing.T) {
+	searchDir := "./pact-specification/testcases/request/path/"
+
+	fileList, err := getFileNamesFromFolder(searchDir)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	for _, fileName := range fileList {
+		testCase(t, fileName)
+	}
+}
+
+func TestRequestQuerySpecificaion(t *testing.T) {
+	searchDir := "./pact-specification/testcases/request/query/"
+
+	fileList, err := getFileNamesFromFolder(searchDir)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	for _, fileName := range fileList {
+		testCase(t, fileName)
+	}
+}
+
 func convertToHTTPRequest(r *provider.Request) (*http.Request, error) {
 	i := &consumer.Interaction{Request: r}
 	return i.ToHTTPRequest("http://localhost")
@@ -37,35 +107,22 @@ func getFileNamesFromFolder(folderPath string) ([]string, error) {
 	return fileList, err
 }
 
-func TestRequestBodySpecificaion(t *testing.T) {
-	searchDir := "./pact-specification/testcases/request/body/"
-
-	fileList, err := getFileNamesFromFolder(searchDir)
+func testCase(t *testing.T, fileName string) {
+	data, err := ioutil.ReadFile("./" + fileName)
 	if err != nil {
 		t.Error(err)
 		t.FailNow()
 	}
+	tc := &RequestTestCase{}
+	if err := json.Unmarshal(data, tc); err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
 
-	for _, fileName := range fileList {
-		data, err := ioutil.ReadFile("./" + fileName)
-		if err != nil {
-			t.Error(err)
-			t.FailNow()
-		}
-		tc := &RequestTestCase{}
-		if err := json.Unmarshal(data, tc); err != nil {
-			t.Error(err)
-			t.FailNow()
-		}
-
-		result, err := comparers.MatchRequest(tc.Expected, tc.Actual)
-		if err != nil {
-			t.Log(tc.Comment)
-			t.Error(err)
-		} else if result != tc.Match {
-			t.Errorf("Expected Match: %v Actual Match: %v", tc.Match, result)
-			t.Error(tc.Comment)
-			t.Logf("Exp: %v \r\nAct: %v", tc.Expected.GetBody(), tc.Actual.GetBody())
-		}
+	result, err := comparers.MatchRequest(tc.Expected, tc.Actual)
+	if err != nil {
+		t.Error(err)
+	} else if result != tc.Match {
+		t.Error(tc.Comment)
 	}
 }

@@ -33,8 +33,8 @@ func bodyMatches(expected, actual io.Reader, allowUnexpectedKeys bool) (bool, di
 	}
 }
 
-func bodyMatchesTemp(expected, actual interface{}, allowUnexpectedKeys bool) (bool, diff.Differences, error) {
-	if expected == nil {
+func bodyMatchesTemp(expected, actual interface{}, allowUnexpectedKeys bool, expectedBody bool) (bool, diff.Differences, error) {
+	if expected == nil && !expectedBody {
 		return true, nil, nil
 	}
 	if result, diffs := diff.DeepDiff(expected, actual, &diff.DiffConfig{AllowUnexpectedKeys: allowUnexpectedKeys, RootPath: "[\"body\"]"}); result {

@@ -6,14 +6,16 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 //Request provider request
 type Request struct {
-	Method  string
-	Path    string
-	Query   string
-	Headers http.Header
+	Method     string
+	Path       string
+	Query      string
+	Headers    http.Header
+	contentSet bool
 	httpContent
 }
 
@@ -66,11 +68,12 @@ func (p *Request) MarshalJSON() ([]byte, error) {
 	}
 
 	if p.Headers != nil {
-		obj["headers"] = getHeaderWithSingleValues(p.Headers)
+		obj["headers"] = joinHeaderKeyValues(p.Headers)
 	}
 
 	if p.httpContent != nil {
-		if body := p.GetBody(); body != nil {
+		body := p.GetBody()
+		if p.contentSet {
 			obj["body"] = body
 		}
 	}
@@ -86,8 +89,12 @@ func (p *Request) UnmarshalJSON(b []byte) error {
 	}
 
 	r := Request{}
-	if err := r.SetBody(obj["body"]); err != nil {
-		return err
+
+	if body, ok := obj["body"]; ok {
+		r.contentSet = true
+		if err := r.SetBody(body); err != nil {
+			return err
+		}
 	}
 
 	if method, ok := obj["method"].(string); ok {
@@ -110,7 +117,7 @@ func (p *Request) UnmarshalJSON(b []byte) error {
 		r.Headers = make(http.Header)
 		for key, val := range headers {
 			if str, ok := val.(string); ok {
-				r.Headers.Add(key, str)
+				r.Headers[key] = splitHeaderKeyValues(str)
 			}
 		}
 	}
@@ -152,6 +159,11 @@ func (p *Request) HasContent() bool {
 	return p.httpContent != nil
 }
 
+// HasContentBeenExplictlySet returns true if the user choose to set the body of the request.
+func (p *Request) HasContentBeenExplictlySet() bool {
+	return p.contentSet
+}
+
 // GetData returns bytes from the content
 func (p *Request) GetData() ([]byte, error) {
 	if p.HasContent() {
@@ -186,17 +198,26 @@ func (p *Request) SetBody(body interface{}) error {
 	if err := p.httpContent.SetBody(body); err != nil {
 		return err
 	}
+	p.contentSet = true
 	return nil
 }
 
-func getHeaderWithSingleValues(headers http.Header) map[string]string {
+func joinHeaderKeyValues(headers http.Header) map[string]string {
 	if headers == nil {
 		return nil
 	}
 
 	h := make(map[string]string)
 	for header, val := range headers {
-		h[header] = val[0]
+		h[header] = strings.Join(val, ",")
 	}
 	return h
+}
+
+func splitHeaderKeyValues(val string) []string {
+	splitVals := strings.Split(val, ",")
+	for i := range splitVals {
+		splitVals[i] = strings.TrimSpace(splitVals[i])
+	}
+	return splitVals
 }

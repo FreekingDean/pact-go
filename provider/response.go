@@ -32,7 +32,7 @@ func (p *Response) MarshalJSON() ([]byte, error) {
 	obj := map[string]interface{}{"status": p.Status}
 
 	if p.Headers != nil {
-		obj["headers"] = getHeaderWithSingleValues(p.Headers)
+		obj["headers"] = joinHeaderKeyValues(p.Headers)
 	}
 	if p.httpContent != nil {
 		if body := p.GetBody(); body != nil {
@@ -60,7 +60,7 @@ func (p *Response) UnmarshalJSON(b []byte) error {
 		r.Headers = make(http.Header)
 		for key, val := range headers {
 			if str, ok := val.(string); ok {
-				r.Headers.Add(key, str)
+				r.Headers[key] = splitHeaderKeyValues(str)
 			}
 		}
 	}
