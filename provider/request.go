@@ -1,7 +1,6 @@
 package provider
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
@@ -133,13 +132,12 @@ func CreateRequestFromHTTPRequest(httpReq *http.Request) (*Request, error) {
 			return nil, err
 		}
 		if len(data) > 0 {
-			switch httpReq.Header.Get("Content-Type") {
-			case "text/plain":
-				n := bytes.IndexByte(data, 0)
-				if err = req.SetBody(string(data[:n])); err != nil {
+			if strings.Contains(httpReq.Header.Get("Content-Type"), "text/plain") {
+
+				if err = req.SetBody(string(data)); err != nil {
 					return nil, err
 				}
-			default: //expecting json
+			} else {
 				var body interface{}
 				if err = json.Unmarshal(data, &body); err != nil {
 					return nil, err

@@ -1,11 +1,11 @@
 package provider
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 //Response provider response
@@ -102,19 +102,18 @@ func (p *Response) UnmarshalJSON(b []byte) error {
 // CreateResponseFromHTTPResponse creates response from http.Response
 func CreateResponseFromHTTPResponse(httpResp *http.Response) (*Response, error) {
 	resp := NewResponse(httpResp.StatusCode, httpResp.Header)
+
 	if httpResp.Body != nil {
 		data, err := ioutil.ReadAll(httpResp.Body)
 		if err != nil {
 			return nil, err
 		}
 		if len(data) > 0 {
-			switch httpResp.Header.Get("Content-Type") {
-			case "text/plain":
-				n := bytes.IndexByte(data, 0)
-				if err = resp.SetBody(string(data[:n])); err != nil {
+			if strings.Contains(httpResp.Header.Get("Content-Type"), "text/plain") {
+				if err = resp.SetBody(string(data)); err != nil {
 					return nil, err
 				}
-			default: //expecting json
+			} else {
 				var body interface{}
 				if err = json.Unmarshal(data, &body); err != nil {
 					return nil, err
