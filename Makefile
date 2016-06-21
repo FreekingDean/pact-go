@@ -10,7 +10,7 @@ test: vet
 	go test -v -cover ./... ./_specification
 
 compile: test
-	go build -v
+	go build -v ./...
 
 run: all
 
