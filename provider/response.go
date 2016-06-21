@@ -77,10 +77,13 @@ func (p *Response) UnmarshalJSON(b []byte) error {
 		}
 	}
 
-	if status, ok := obj["status"].(float64); ok { //default number deserialised as float64
-		r.Status = int(status)
-	} else {
-		return errors.New("Could not unmarshal response, status value is either nil or not a int")
+	if val, ok := obj["status"]; ok {
+		//default number deserialised as float64
+		if status, ok := val.(float64); ok {
+			r.Status = int(status)
+		} else {
+			return errors.New("Could not unmarshal response, status value is either nil or not a int")
+		}
 	}
 
 	if headers, ok := obj["headers"].(map[string]interface{}); ok {
