@@ -73,6 +73,50 @@ func Test_Verifier_CanVerify_Success(t *testing.T) {
 	}
 }
 
+func Test_Verifier_CanFilterInteractionsByState_Success(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/user", userHandlerWithValidData)
+	mux.HandleFunc("/getpact", pactServer)
+	server := httptest.NewServer(mux)
+
+	defer server.Close()
+	u, _ := url.Parse(server.URL)
+	v := NewPactFileVerifier(nil, nil, nil).
+		HonoursPactWith("chrome browser").
+		PactUri(server.URL+"/getpact", nil).
+		ServiceProvider("go api", &http.Client{}, u).
+		ProviderState("there is a user with id {23}", nil, nil).
+		ProviderState("there is no user with id {200}", nil, nil)
+	if err := v.VerifyState("", "there is no user with id {200}"); err != nil {
+		t.Error(err)
+	}
+	if err := v.Verify(); err != nil {
+		t.Error(err)
+	}
+}
+
+func Test_Verifier_CanFilterInteractionsByDescription_Success(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/user", userHandlerWithValidData)
+	mux.HandleFunc("/getpact", pactServer)
+	server := httptest.NewServer(mux)
+
+	defer server.Close()
+	u, _ := url.Parse(server.URL)
+	v := NewPactFileVerifier(nil, nil, nil).
+		HonoursPactWith("chrome browser").
+		PactUri(server.URL+"/getpact", nil).
+		ServiceProvider("go api", &http.Client{}, u).
+		ProviderState("there is a user with id {23}", nil, nil).
+		ProviderState("there is no user with id {200}", nil, nil)
+	if err := v.VerifyState("get request for user with id {23}", ""); err != nil {
+		t.Error(err)
+	}
+	if err := v.Verify(); err != nil {
+		t.Error(err)
+	}
+}
+
 func Test_Verifier_CanVerify_Mismatch(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/user", userHandlerWithMismatchedData)
@@ -123,5 +167,20 @@ func Test_Verifier_ThrowsError_ProviderNotSet(t *testing.T) {
 		t.Error("Expected empty provider name error")
 	} else if err != errEmptyProvider {
 		t.Errorf("Expected %s, got %s", errEmptyProvider, err)
+	}
+}
+
+func Test_Verifier_ThrowsError_NoFilteredInteractions(t *testing.T) {
+	v := NewPactFileVerifier(nil, nil, nil).
+		HonoursPactWith("chrome browser").
+		PactUri("./pact_examples/chrome_browser-go_api.json", nil).
+		ServiceProvider("go api", &http.Client{}, &url.URL{}).
+		ProviderState("there is a user with id {23}", nil, nil).
+		ProviderState("there is no user with id {200}", nil, nil)
+
+	if err := v.VerifyState("", "there is a user with id {0}"); err == nil {
+		t.Error("Expected no filtered interactions found")
+	} else if err != errNoFilteredInteractionsFound {
+		t.Errorf("Expected %s, got %s", errNoFilteredInteractionsFound, err)
 	}
 }

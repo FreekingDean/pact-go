@@ -2,17 +2,21 @@ package pact
 
 import (
 	"errors"
-	"github.com/SEEK-Jobs/pact-go/io"
 	"net/http"
 	"net/url"
+
+	"github.com/SEEK-Jobs/pact-go/consumer"
+	"github.com/SEEK-Jobs/pact-go/io"
 )
 
+// Verifier verifies the conumser interactions with the provider
 type Verifier interface {
 	ProviderState(state string, setup, teardown Action) Verifier
 	ServiceProvider(providerName string, c *http.Client, u *url.URL) Verifier
 	HonoursPactWith(consumerName string) Verifier
 	PactUri(uri string, config *PactUriConfig) Verifier
 	Verify() error
+	VerifyState(description string, state string) error
 }
 
 type Action func() error
@@ -47,9 +51,10 @@ func NewPactFileVerifier(setup, teardown Action, config *VerfierConfig) Verifier
 }
 
 var (
-	errEmptyProvider     = errors.New("Provider name cannot be empty, please provide a valid value using ServiceProvider function.")
-	errEmptyConsumer     = errors.New("Consumer name cannot be empty, please provide a valid value using HonoursPactWith function.")
-	errVerficationFailed = errors.New("Failed to verify the pact, please see the log for more details.")
+	errNoFilteredInteractionsFound = errors.New("The specified description and/or providerState filter yielded no interactions.")
+	errEmptyProvider               = errors.New("Provider name cannot be empty, please provide a valid value using ServiceProvider function.")
+	errEmptyConsumer               = errors.New("Consumer name cannot be empty, please provide a valid value using HonoursPactWith function.")
+	errVerficationFailed           = errors.New("Failed to verify the pact, please see the log for more details.")
 )
 
 //ServiceProvider provides the information needed to verify the interactions with service provider
@@ -84,8 +89,8 @@ func (v *pactFileVerfier) PactUri(uri string, config *PactUriConfig) Verifier {
 	return v
 }
 
-//Verify verifies all the interactions of consumer against the provider
-func (v *pactFileVerfier) Verify() error {
+//VerifyState verifies the consumer interactions for given state and/or description with the provider
+func (v *pactFileVerfier) VerifyState(description string, state string) error {
 	if err := v.verifyInternalState(); err != nil {
 		return err
 	}
@@ -95,6 +100,32 @@ func (v *pactFileVerfier) Verify() error {
 	if err != nil {
 		return err
 	}
+
+	//filter by description
+	if description != "" {
+		var filteredInteractions []*consumer.Interaction
+		for _, val := range f.Interactions {
+			if val.Description == description {
+				filteredInteractions = append(filteredInteractions, val)
+			}
+		}
+		f.Interactions = filteredInteractions
+	}
+
+	//filter by state
+	if state != "" {
+		var filteredInteractions []*consumer.Interaction
+		for _, val := range f.Interactions {
+			if val.State == state {
+				filteredInteractions = append(filteredInteractions, val)
+			}
+		}
+		f.Interactions = filteredInteractions
+	}
+
+	if (description != "" || state != "") && len(f.Interactions) == 0 {
+		return errNoFilteredInteractionsFound
+	}
 	//validate interactions
 	if ok, err := v.validator.Validate(f, v.stateActions); err != nil {
 		return err
@@ -103,6 +134,11 @@ func (v *pactFileVerfier) Verify() error {
 	}
 
 	return nil
+}
+
+//Verify verifies all the interactions of consumer with the provider
+func (v *pactFileVerfier) Verify() error {
+	return v.VerifyState("", "")
 }
 
 func (v *pactFileVerfier) getPactFile() (*io.PactFile, error) {
