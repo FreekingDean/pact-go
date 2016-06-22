@@ -1,8 +1,9 @@
 package comparers
 
 import (
-	"github.com/SEEK-Jobs/pact-go/diff"
 	"net/url"
+
+	"github.com/SEEK-Jobs/pact-go/diff"
 )
 
 func pathMatches(expected, actual string) bool {

@@ -3,11 +3,12 @@ package consumer
 import (
 	"bytes"
 	"errors"
-	"github.com/SEEK-Jobs/pact-go/provider"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/SEEK-Jobs/pact-go/provider"
 )
 
 type Interaction struct {
@@ -75,12 +76,11 @@ func (i *Interaction) IsSimilar(to *Interaction) bool {
 }
 
 func (i *Interaction) WriteToHTTPResponse(w http.ResponseWriter) error {
-	w.WriteHeader(i.Response.Status)
-	respHeader := w.Header()
-
 	for header, val := range i.Response.Headers {
-		respHeader.Add(header, val[0])
+		w.Header()[header] = val
 	}
+
+	w.WriteHeader(i.Response.Status)
 
 	if body, err := i.Response.GetData(); err != nil {
 		return err

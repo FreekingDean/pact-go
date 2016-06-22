@@ -3,10 +3,12 @@ package consumer
 import (
 	"errors"
 	"fmt"
-	"github.com/SEEK-Jobs/pact-go/comparers"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+
+	"github.com/SEEK-Jobs/pact-go/comparers"
+	"github.com/SEEK-Jobs/pact-go/provider"
 )
 
 type HTTPMockService struct {
@@ -85,6 +87,7 @@ func (ms *HTTPMockService) VerifyInteractions() error {
 	return verifyInteractions(ms.inScopeInteractions, ms.requestedInteractions)
 }
 
+// GetRegisteredInteractions returns all the registred interactions
 func (ms *HTTPMockService) GetRegisteredInteractions() []*Interaction {
 	return ms.interactions
 }
@@ -99,22 +102,17 @@ func findSimilarInteraction(src []*Interaction, i *Interaction) *Interaction {
 }
 
 func (ms *HTTPMockService) findMatchingInteractionInScope(r *http.Request) (*Interaction, error) {
-
-	for i := range ms.inScopeInteractions {
-		req, err := ms.inScopeInteractions[i].ToHTTPRequest(ms.server.URL)
-
+	reqToFind, err := provider.CreateRequestFromHTTPRequest(r)
+	if err != nil {
+		return nil, err
+	}
+	for _, interaction := range ms.inScopeInteractions {
+		result, err := comparers.MatchRequest(interaction.Request, reqToFind)
 		if err != nil {
 			return nil, err
 		}
-
-		result, err := comparers.MatchRequest(req, r)
-
-		if err != nil {
-			return nil, err
-		}
-
 		if result {
-			return ms.inScopeInteractions[i], nil
+			return interaction, nil
 		}
 	}
 	return nil, nil

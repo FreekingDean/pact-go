@@ -2,11 +2,12 @@ package comparers
 
 import (
 	"bytes"
-	"github.com/SEEK-Jobs/pact-go/provider"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/SEEK-Jobs/pact-go/provider"
 )
 
 type matchResponseTest struct {
@@ -42,7 +43,12 @@ func buildTestHttpResponse(status int, h http.Header, body string) *http.Respons
 
 func Test_MatchResponse_Scenarios(t *testing.T) {
 	for _, test := range matchResponseTestData {
-		diff, err := MatchResponse(test.exp, test.act)
+		providerResponse, err := provider.CreateResponseFromHTTPResponse(test.act)
+		if err != nil {
+			t.Error(err)
+			t.FailNow()
+		}
+		diff, err := MatchResponse(test.exp, providerResponse)
 		if err != nil {
 			t.Error(err)
 		}

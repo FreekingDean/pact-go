@@ -3,13 +3,14 @@ package pact
 import (
 	"errors"
 	"fmt"
-	"github.com/SEEK-Jobs/pact-go/consumer"
-	"github.com/SEEK-Jobs/pact-go/io"
-	"github.com/SEEK-Jobs/pact-go/provider"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"testing"
+
+	"github.com/SEEK-Jobs/pact-go/consumer"
+	"github.com/SEEK-Jobs/pact-go/io"
+	"github.com/SEEK-Jobs/pact-go/provider"
 )
 
 func Test_Validator_IsInAStateToValidate(t *testing.T) {
@@ -68,14 +69,14 @@ func Test_Validator_ReturnsErrorWhenRequestFails(t *testing.T) {
 
 func Test_Validator_ReturnsErrorFromResponseMatcher(t *testing.T) {
 	v := newConsumerValidator(nil, nil, DefaultLogger)
-	r := provider.NewJSONResponse(200, nil)
-	r.SetBody(`{"name":"John Doe"}`)
-	interaction, _ := consumer.NewInteraction("description", "state", provider.NewJSONRequest("Get", "/", "", nil), r)
+	response := provider.NewJSONResponse(200, nil)
+	response.SetBody(`{"name":"John Doe"}`)
+	interaction, _ := consumer.NewInteraction("description", "state", provider.NewJSONRequest("Get", "/", "", nil), response)
 	f := io.NewPactFile("consumer", "provider", []*consumer.Interaction{interaction})
 	sa := &stateAction{setup: nil, teardown: nil}
 	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(interaction.Response.Status)
-		w.Write([]byte("bad json"))
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte("{{}"))
 	}))
 	defer s.Close()
 	u, _ := url.Parse(s.URL)

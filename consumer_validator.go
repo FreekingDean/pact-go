@@ -3,6 +3,7 @@ package pact
 import (
 	"errors"
 	"fmt"
+
 	"github.com/SEEK-Jobs/pact-go/comparers"
 	"github.com/SEEK-Jobs/pact-go/consumer"
 	"github.com/SEEK-Jobs/pact-go/diff"
@@ -11,6 +12,8 @@ import (
 
 	"net/http"
 	"net/url"
+
+	"github.com/SEEK-Jobs/pact-go/provider"
 )
 
 type consumerValidator interface {
@@ -106,7 +109,14 @@ func (v *pactValidator) validateInteraction(i *consumer.Interaction) (bool, erro
 
 	if err != nil {
 		return false, err
-	} else if diffs, err := comparers.MatchResponse(i.Response, resp); err != nil {
+	}
+
+	providerResponse, err := provider.CreateResponseFromHTTPResponse(resp)
+	if err != nil {
+		return false, err
+	}
+
+	if diffs, err := comparers.MatchResponse(i.Response, providerResponse); err != nil {
 		return false, err
 	} else if len(diffs) > 0 {
 		diff.FormatDiff(diffs, v.l, fmt.Sprintf("The response for state '%s' did not match, the differences are below:", i.State))
