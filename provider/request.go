@@ -80,7 +80,7 @@ func (p *Request) MarshalJSON() ([]byte, error) {
 	return json.Marshal(obj)
 }
 
-//UnmarshalJSON cusotm json unmarshalling
+//UnmarshalJSON custom json unmarshalling
 func (p *Request) UnmarshalJSON(b []byte) error {
 	var obj map[string]interface{}
 	if err := json.Unmarshal(b, &obj); err != nil {
@@ -123,7 +123,7 @@ func (p *Request) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// CreateRequestFromHTTPRequest creates provdier request from http request
+// CreateRequestFromHTTPRequest creates provider request from http request
 func CreateRequestFromHTTPRequest(httpReq *http.Request) (*Request, error) {
 	req := NewRequest(httpReq.Method, httpReq.URL.Path, httpReq.URL.RawQuery, httpReq.Header)
 	if httpReq.Body != nil {

@@ -82,12 +82,12 @@ func (ms *HTTPMockService) IsTestScopeClear() bool {
 	return len(ms.inScopeInteractions) == 0 && len(ms.requestedInteractions) == 0
 }
 
-//VerifyInteractions - Verfies if the registered interactions has been requested and verified
+//VerifyInteractions - Verifies if the registered interactions has been requested and verified
 func (ms *HTTPMockService) VerifyInteractions() error {
 	return verifyInteractions(ms.inScopeInteractions, ms.requestedInteractions)
 }
 
-// GetRegisteredInteractions returns all the registred interactions
+// GetRegisteredInteractions returns all the registered interactions
 func (ms *HTTPMockService) GetRegisteredInteractions() []*Interaction {
 	return ms.interactions
 }

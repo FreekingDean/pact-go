@@ -277,7 +277,7 @@ func deepValueEqual(path string, v1, v2 reflect.Value, visited map[visit]bool, d
 // equal only if they are both nil.
 //
 // DeepDiff differs from reflect.DeepDiff in that an empty slice is
-// equal to a nil slice. Additional fileds/keys from structs/maps of a2
+// equal to a nil slice. Additional fields/keys from structs/maps of a2
 // are not treated as mismatch as this matching needs to be loose for
 // non
 func DeepDiff(a1, a2 interface{}, conf *DiffConfig) (bool, Differences) {

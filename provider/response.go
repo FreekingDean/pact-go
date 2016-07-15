@@ -42,7 +42,7 @@ func NewPlainTextResponse(status int, headers http.Header) *Response {
 	}
 }
 
-//ResetContent emoves an existing contentß
+//ResetContent removes an existing content
 func (p *Response) ResetContent() {
 	p.httpContent = nil
 }
@@ -63,7 +63,7 @@ func (p *Response) MarshalJSON() ([]byte, error) {
 	return json.Marshal(obj)
 }
 
-//UnmarshalJSON cusotm json unmarshalling
+//UnmarshalJSON custom json unmarshalling
 func (p *Response) UnmarshalJSON(b []byte) error {
 	var obj map[string]interface{}
 	if err := json.Unmarshal(b, &obj); err != nil {
