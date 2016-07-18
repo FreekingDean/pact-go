@@ -47,7 +47,7 @@ func Test_MatchingInteractionFound_ReturnsCorrectResponse(t *testing.T) {
 				t.Error("The response body does not match")
 			} else {
 				if err := mockHTTPServer.VerifyInteractions(); err != nil {
-					t.Errorf("expected verfication to pass, got error: %s", err.Error())
+					t.Errorf("expected verification to pass, got error: %s", err.Error())
 				}
 			}
 		}

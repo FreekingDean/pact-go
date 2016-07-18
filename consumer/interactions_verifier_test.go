@@ -55,6 +55,6 @@ func Test_ShouldVerify_Interactions(t *testing.T) {
 	registered := []*Interaction{i}
 	requested := []*Interaction{i}
 	if err := verifyInteractions(registered, requested); err != nil {
-		t.Errorf("expected verfication to succed, got error: %s", err.Error())
+		t.Errorf("expected verification to succeed, got error: %s", err.Error())
 	}
 }

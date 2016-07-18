@@ -9,7 +9,7 @@ import (
 	"github.com/SEEK-Jobs/pact-go/io"
 )
 
-// Verifier verifies the conumser interactions with the provider
+// Verifier verifies the consumer interactions with the provider
 type Verifier interface {
 	ProviderState(state string, setup, teardown Action) Verifier
 	ServiceProvider(providerName string, c *http.Client, u *url.URL) Verifier
@@ -66,7 +66,7 @@ func (v *pactFileVerfier) ServiceProvider(providerName string, c *http.Client, u
 
 //ProviderState sets the setup and teardown action to be executed before a interaction with specific state gets verified
 func (v *pactFileVerfier) ProviderState(state string, setup, teardown Action) Verifier {
-	//sacrificed empty state validation in favour of chaining
+	//sacrificed empty state validation in favor of chaining
 	if state != "" {
 		v.stateActions[state] = &stateAction{setup: setup, teardown: teardown}
 	}

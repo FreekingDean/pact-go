@@ -184,7 +184,7 @@ func TestProviderHonoursPactWithConsumer(t *testing.T) {
 }
 
 func ensureResourceExists() error {
-	//implemenation to add the resource, so the api could return the expected data
+	//implementation to add the resource, so the api could return the expected data
 	return nil
 }
 ```

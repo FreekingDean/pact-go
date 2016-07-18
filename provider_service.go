@@ -6,7 +6,7 @@ import (
 	"github.com/SEEK-Jobs/pact-go/provider"
 )
 
-//ProviderService - Interface to register and verify interaactions between consumer and service provider.
+//ProviderService - Interface to register and verify interactions between consumer and service provider.
 type ProviderService interface {
 	//Given the state exists
 	Given(state string) ProviderService
@@ -16,7 +16,7 @@ type ProviderService interface {
 	With(request provider.Request) ProviderService
 	//WillRespondWith with this response
 	WillRespondWith(response provider.Response) error
-	//ClearInteractions clears all the registered interaactions
+	//ClearInteractions clears all the registered interactions
 	ClearInteractions() ProviderService
 	//VerifyInteractions checks if all the registered interactions have been verified
 	VerifyInteractions() error

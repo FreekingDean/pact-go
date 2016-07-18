@@ -65,7 +65,7 @@ func (c *jsonContent) setJSONStringBody(content string) error {
 	case reflect.Slice:
 		c.setSliceBody(v)
 	default:
-		return errors.New("conent is not valid json")
+		return errors.New("content is not valid json")
 	}
 	return nil
 }
