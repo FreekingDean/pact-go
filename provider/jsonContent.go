@@ -17,7 +17,7 @@ type jsonContent struct {
 func (c *jsonContent) GetData() ([]byte, error) {
 	if len(c.data) > 0 {
 		return json.Marshal(c.data)
-	} else if len(c.sliceData) > 0 {
+	} else if c.sliceData != nil {
 		return json.Marshal(c.sliceData)
 	} else {
 		return nil, nil
@@ -27,7 +27,7 @@ func (c *jsonContent) GetData() ([]byte, error) {
 func (c *jsonContent) GetBody() interface{} {
 	if len(c.data) > 0 {
 		return c.data
-	} else if len(c.sliceData) > 0 {
+	} else if c.sliceData != nil {
 		return c.sliceData
 	} else {
 		return nil
