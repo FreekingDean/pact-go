@@ -41,7 +41,7 @@ func (c *jsonContent) SetBody(content interface{}) error {
 	case reflect.Map, reflect.Struct:
 		return c.setStructBody(v.Interface())
 	case reflect.Slice:
-		c.setSliceBody(v)
+		c.setSliceBody(content, v.Len())
 	default:
 		return fmt.Errorf("content %v is not valid json", content)
 	}
@@ -63,7 +63,7 @@ func (c *jsonContent) setJSONStringBody(content string) error {
 	case reflect.Map:
 		return c.setStructBody(val)
 	case reflect.Slice:
-		c.setSliceBody(v)
+		c.setSliceBody(val, v.Len())
 	default:
 		return errors.New("content is not valid json")
 	}
@@ -84,9 +84,16 @@ func (c *jsonContent) setStructBody(content interface{}) error {
 	return nil
 }
 
-func (c *jsonContent) setSliceBody(v reflect.Value) {
-	c.sliceData = make([]interface{}, v.Len())
-	for i := 0; i < v.Len(); i++ {
-		c.sliceData[i] = v.Index(i).Interface()
+func (c *jsonContent) setSliceBody(content interface{}, len int) error {
+	if marshalContent, err := json.Marshal(content); err != nil {
+		return err
+	} else {
+		c.sliceData = make([]interface{}, len)
+		d := json.NewDecoder(bytes.NewBuffer(marshalContent))
+		d.UseNumber()
+		if err := d.Decode(&c.sliceData); err != nil {
+			return err
+		}
 	}
+	return nil
 }
