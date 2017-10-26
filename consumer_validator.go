@@ -119,7 +119,7 @@ func (v *pactValidator) validateInteraction(i *consumer.Interaction) (bool, erro
 	if diffs, err := comparers.MatchResponse(i.Response, providerResponse); err != nil {
 		return false, err
 	} else if len(diffs) > 0 {
-		diff.FormatDiff(diffs, v.l, fmt.Sprintf("The response for state '%s' did not match, the differences are below:", i.State))
+		diff.FormatDiff(diffs, v.l, getHeading(i))
 		return false, nil
 	}
 	return true, nil
@@ -132,4 +132,11 @@ func (v *pactValidator) executeAction(a Action) error {
 		}
 	}
 	return nil
+}
+
+func getHeading(i *consumer.Interaction) string{
+	if i.State != "" {
+		return fmt.Sprintf("The response for interaction '%s' with state '%s' did not match, the differences are below:", i.Description, i.State)
+	}
+	return fmt.Sprintf("The response for interaction '%s' did not match, the differences are below:", i.Description)
 }
