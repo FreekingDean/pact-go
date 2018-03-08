@@ -3,6 +3,7 @@ package comparers
 import (
 	"net/url"
 
+	"fmt"
 	"github.com/SEEK-Jobs/pact-go/provider"
 )
 
@@ -11,6 +12,10 @@ func MatchRequest(expected, actual *provider.Request) (bool, error) {
 	expectedQuery, err := url.ParseQuery(expected.Query)
 	if err != nil {
 		return false, err
+	}
+	if len(expected.MatchingRules) > 0 {
+		fmt.Println("%+v", expected.MatchingRules)
+		panic(expected.MatchingRules)
 	}
 	actualQuery, err := url.ParseQuery(actual.Query)
 	if err != nil {

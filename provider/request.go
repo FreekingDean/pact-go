@@ -8,13 +8,30 @@ import (
 	"strings"
 )
 
+type Matchers struct {
+}
+
+type RuleSet struct {
+	Key      Key
+	Matchers Matchers
+}
+
+type MatchingRules struct {
+	Body    RuleSet
+	Method  RuleSet
+	Path    RuleSet
+	Query   RuleSet
+	Headers RuleSet
+}
+
 //Request provider request
 type Request struct {
-	Method     string
-	Path       string
-	Query      string
-	Headers    http.Header
-	contentSet bool
+	Method        string
+	Path          string
+	Query         string
+	Headers       http.Header
+	contentSet    bool
+	MatchingRules MatchingRules
 	httpContent
 }
 
@@ -118,6 +135,10 @@ func (p *Request) UnmarshalJSON(b []byte) error {
 				r.Headers[key] = splitHeaderKeyValues(str)
 			}
 		}
+	}
+
+	if matchingRules, ok := obj["matchingRules"].(map[string]interface{}); ok {
+		r.MatchingRules = matchingRules
 	}
 	*p = Request(r)
 	return nil

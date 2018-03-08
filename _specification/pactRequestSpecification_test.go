@@ -115,7 +115,7 @@ func testCase(t *testing.T, fileName string) {
 	}
 	tc := &RequestTestCase{}
 	if err := json.Unmarshal(data, tc); err != nil {
-		t.Error(err)
+		t.Error(fileName + ": " + err.Error())
 		t.FailNow()
 	}
 
@@ -123,6 +123,6 @@ func testCase(t *testing.T, fileName string) {
 	if err != nil {
 		t.Error(err)
 	} else if result != tc.Match {
-		t.Error(tc.Comment)
+		t.Errorf("\nExpected: %v\nGot:      %v\nCase:     %s\nFile:     %s", tc.Match, result, tc.Comment, fileName)
 	}
 }
